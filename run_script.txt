@@ -1,0 +1,46 @@
+#!/bin/bash
+
+############
+### LBFT ###
+############
+
+## Install the requirements instead of the next line
+source venv/bin/activate
+
+export FLASK_ENV=development
+export FLASK_APP=node_server.py
+
+## run the first node on port 8000
+
+x-terminal-emulator -T port_8000 -e python -m flask run --port 8000
+sleep 1s
+
+## add new nodes and register them with each other
+
+x-terminal-emulator -T port_8001 -e python -m flask run --port 8001
+sleep 1s
+curl -X POST http://127.0.0.1:8001/register_with -H 'Content-Type: application/json' -d '{"node_address": "http://127.0.0.1:8000", "req_chain": 1}'
+sleep 2s
+
+x-terminal-emulator -T port_8002 -e python -m flask run --port 8002
+sleep 1s
+curl -X POST http://127.0.0.1:8002/register_with -H 'Content-Type: application/json' -d '{"node_address": "http://127.0.0.1:8000", "req_chain": 1}'
+sleep 2s
+
+x-terminal-emulator -T port_8003 -e python -m flask run --port 8003
+sleep 1s
+curl -X POST http://127.0.0.1:8003/register_with -H 'Content-Type: application/json' -d '{"node_address": "http://127.0.0.1:8000", "req_chain": 1}'
+sleep 2s
+
+curl -X POST http://127.0.0.1:8001/register_with -H 'Content-Type: application/json' -d '{"node_address": "http://127.0.0.1:8000", "req_chain": 0}'
+sleep 1s
+curl -X POST http://127.0.0.1:8002/register_with -H 'Content-Type: application/json' -d '{"node_address": "http://127.0.0.1:8000", "req_chain": 0}'
+sleep 1s
+curl -X POST http://127.0.0.1:8003/register_with -H 'Content-Type: application/json' -d '{"node_address": "http://127.0.0.1:8000", "req_chain": 0}'
+sleep 1s
+
+
+## run the client that generates transactions on port 9000
+
+x-terminal-emulator -T port_9000 -e python node_server.py --port 9000
+
